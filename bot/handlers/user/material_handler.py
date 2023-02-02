@@ -6,6 +6,7 @@ from aiogram.dispatcher import FSMContext
 
 from config.settings import MEDIA_ROOT
 from bot.middlewares.config import dp, bot
+from bot.middlewares import api
 from bot.middlewares.states import UserInfoStateGroup, UploadSolutionsStateGroup
 
 
@@ -49,10 +50,23 @@ async def upload_solution(message: types.Message, state: FSMContext):
     if not (message.document and message.document.mime_subtype == 'pdf'):
         await message.answer('You need to upload pdf file.')
         return
-    await message.document.download(destination_file=MEDIA_ROOT / 'solutions' /(str(trf_code()) + '.pdf'))
+    solution = message.document.file_id
+    await state.update_data(solution=solution)
+    # await message.document.download(destination_file=MEDIA_ROOT / 'solutions' /(str(trf_code()) + '.pdf'))
+    data = await state.get_data()
+    user = api.post(api.add_user, data)
+    await send_admins(user)
+
     await message.answer('Thank you for your answers. We try to inform about your score as soon as possible.')
-    await state.reset_state(with_data=False)
+    await state.reset_state()
 
 
 def trf_code():
     return random.randint(1000000, 9999999)
+
+
+async def send_admins(user):
+    admins = api.get(addr=api.list_admins)
+    for admin in admins:
+        await bot.send_document(admin['from_id'], user['solution'],
+                                caption=f'Full name:{user["full_name"]}\nPhone number:{user["phone_number"]}')

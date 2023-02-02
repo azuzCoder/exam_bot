@@ -1,4 +1,5 @@
 .idea
-index.py
 media/solutions
 .idea/exam_bot.iml
+db.sqlite3
+test.py

@@ -1,3 +1,5 @@
 from django.contrib import admin
+from .models import BotAdmin, BotUser
 
-# Register your models here.
+admin.site.register(BotAdmin)
+admin.site.register(BotUser)
